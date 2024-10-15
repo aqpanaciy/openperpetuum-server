@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using Perpetuum.Bootstrapper;
 
 namespace Perpetuum.Server
@@ -35,18 +35,6 @@ namespace Perpetuum.Server
                 {
                     Console.WriteLine($"GameRoot folder was not found: {gameRoot.Value}");
                     return 3;
-                }
-
-                bootstrapper.Init(gameRoot.Value);
-
-                if (bootstrapper.TryInitUpnp(out bool upnpSuccess))
-                {
-                    if (!upnpSuccess)
-                    {
-                        //System Error Codes (500-999)
-                        // signal upnp attempt error with custom errorcode
-                        return 2000;
-                    }
                 }
 
                 return 0;
