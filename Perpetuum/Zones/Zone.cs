@@ -322,19 +322,31 @@ namespace Perpetuum.Zones
             profiler(time);
         }
 
+        private readonly TimeSpan MAX_NOPLAYER = TimeSpan.FromMilliseconds(150);
+        private TimeSpan _elapsed = TimeSpan.Zero;
+
         public override void Update(TimeSpan time)
         {
             UpdateSessions(time);
             
             _updateUnitsTimer.Update(time).IsPassed(ProcessUpdatedUnits);
 
-            UpdateUnits(time);
+            _elapsed += time;
 
-            RiftManager?.Update(time);
-            RelicManager?.Update(time);
-            MiningLogHandler.Update(time);
-            HarvestLogHandler.Update(time);
-            MeasureUpdate(time);
+            if (Players.IsNullOrEmpty() && _elapsed < MAX_NOPLAYER)
+            {
+                return;
+            }
+
+            UpdateUnits(_elapsed);
+
+            RiftManager?.Update(_elapsed);
+            RelicManager?.Update(_elapsed);
+            MiningLogHandler.Update(_elapsed);
+            HarvestLogHandler.Update(_elapsed);
+            MeasureUpdate(_elapsed);
+
+            _elapsed = TimeSpan.Zero;
         }
 
         private void UpdateUnits(TimeSpan time)
