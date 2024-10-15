@@ -27,9 +27,8 @@ namespace Perpetuum.RequestHandlers.Missions
         public  void HandleRequest(IRequest request)
         {
             //!!! only in DEBUG !!!
-#if !DEBUG
-            return;
-#endif
+#if DEBUG
+
             using (var scope = Db.CreateTransaction())
             {
                 //clear sql
@@ -56,6 +55,7 @@ namespace Perpetuum.RequestHandlers.Missions
                 
                 scope.Complete();
             }
+#endif
         }
     }
 }
