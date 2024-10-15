@@ -53,30 +53,42 @@ namespace Perpetuum.Data
         {
             using (var connection = _connectionFactory())
             {
-                connection.Open();
-
-                if (Transaction.Current != null && connection is DbConnection dbConnection)
-                    dbConnection.EnlistTransaction(Transaction.Current);
-
-                var command = connection.CreateCommand();
-                command.CommandText = _commandText;
-                command.CommandType = _commandText.Contains(" ") ? CommandType.Text : CommandType.StoredProcedure;
-
-                if (_parameters != null)
+                var state = connection.State;
+                if (state != ConnectionState.Open)
                 {
-                    foreach (var kvp in _parameters)
+                    connection.Open();
+                }
+
+                try
+                {
+                    var command = connection.CreateCommand();
+                    command.CommandText = _commandText;
+                    command.CommandType = _commandText.Contains(" ") ? CommandType.Text : CommandType.StoredProcedure;
+
+                    if (_parameters != null)
                     {
-                        var parameter = command.CreateParameter();
-                        parameter.ParameterName = kvp.Key;
-                        parameter.Value = kvp.Value ?? DBNull.Value;
-                        command.Parameters.Add(parameter);
+                        foreach (var kvp in _parameters)
+                        {
+                            var parameter = command.CreateParameter();
+                            parameter.ParameterName = kvp.Key;
+                            parameter.Value = kvp.Value ?? DBNull.Value;
+                            command.Parameters.Add(parameter);
+                        }
+                    }
+
+                    using (command)
+                    {
+                        return execute(command);
+                    }
+                }
+                finally
+                {
+                    if (state == ConnectionState.Closed)
+                    {
+                        connection.Close();
                     }
                 }
 
-                using (command)
-                {
-                    return execute(command);
-                }
             }
         }
 
