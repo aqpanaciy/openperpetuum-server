@@ -37,6 +37,8 @@ namespace Perpetuum.Server
                     return 3;
                 }
 
+                bootstrapper.Init(gameRoot.Value);
+
                 return 0;
             });
 
