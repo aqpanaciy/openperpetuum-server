@@ -13,10 +13,10 @@ namespace Perpetuum.Zones
 
         private static readonly MD5 _md5 = MD5.Create();
         private static readonly int _md5HashSize = _md5.HashSize / 8;
-        private static readonly Rijndael _rijndael = Rijndael.Create();
+        private static readonly Aes _aes = Aes.Create();
 
         private readonly int _characterId;
-        private readonly DateTime _created;
+        private readonly long _created;
 
         public int CharacterId
         {
@@ -25,26 +25,26 @@ namespace Perpetuum.Zones
 
         static ZoneTicket()
         {
-            _rijndael.GenerateKey();
-            _rijndael.GenerateIV();
+            _aes.GenerateKey();
+            _aes.GenerateIV();
         }
 
         private ZoneTicket(int characterId) : this()
         {
             _characterId = characterId;
-            _created = DateTime.Now;
+            _created = DateTime.Now.ToBinary();
         }
 
         public bool IsExpired
         {
-            get { return DateTime.Now.Subtract(_created) > _ticketLifetime; }
+            get { return DateTime.Now.Subtract(DateTime.FromBinary(_created)) > _ticketLifetime; }
         }
 
         private static byte[] Encrypt(ZoneTicket ticket)
         {
             using (var ms = new MemoryStream())
             {
-                var encryptor = _rijndael.CreateEncryptor(_rijndael.Key, _rijndael.IV);
+                var encryptor = _aes.CreateEncryptor(_aes.Key, _aes.IV);
 
                 using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
                 {
@@ -64,7 +64,7 @@ namespace Perpetuum.Zones
 
             using (var ms = new MemoryStream())
             {
-                var decryptor = _rijndael.CreateDecryptor(_rijndael.Key, _rijndael.IV);
+                var decryptor = _aes.CreateDecryptor(_aes.Key, _aes.IV);
 
                 using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Write))
                 {
