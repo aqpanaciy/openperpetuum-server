@@ -251,14 +251,40 @@ namespace Perpetuum.Zones
             Logger.Info($"Unit exited from zone. zone:{Id} eid = {u.InfoString} ({u.CurrentPosition})");
         }
 
-        private ImmutableHashSet<Unit> _updatedUnits = ImmutableHashSet<Unit>.Empty;
+        private enum PrimaryHashSet
+        {
+            None = 0,
+            One,
+            Tow
+        }
+
+        private PrimaryHashSet _primaryUpdatedUnits = PrimaryHashSet.None;
+        private Mutex _updatedUnitsMutex = new Mutex();
+        private HashSet<Unit> _updatedUnitsOne = new HashSet<Unit>();
+        private HashSet<Unit> _updatedUnitsTow = new HashSet<Unit>();
 
         private void ProcessUpdatedUnits()
         {
-            ImmutableHashSet<Unit> updatedUnits;
+            HashSet<Unit> updatedUnits;
 
-            if ((updatedUnits = Interlocked.CompareExchange(ref _updatedUnits, ImmutableHashSet<Unit>.Empty, _updatedUnits)) == ImmutableHashSet<Unit>.Empty)
+            _updatedUnitsMutex.WaitOne();
+            switch(_primaryUpdatedUnits)
+            {
+                case PrimaryHashSet.One:
+                    updatedUnits = _updatedUnitsOne;
+                    _primaryUpdatedUnits = PrimaryHashSet.Tow;
+                    break;
+                default:
+                    updatedUnits = _updatedUnitsTow;
+                    _primaryUpdatedUnits = PrimaryHashSet.One;
+                    break;
+            }
+            _updatedUnitsMutex.ReleaseMutex();
+
+            if (updatedUnits.IsNullOrEmpty())
+            {
                 return;
+            }
 
             foreach (var kvp in _units)
             {
@@ -282,6 +308,8 @@ namespace Perpetuum.Zones
                     bTarget?.BlobHandler.UpdateBlob(sourceUnit);
                 }
             }
+
+            updatedUnits.Clear();
         }
 
         private void OnUnitUpdated(Unit unit, UnitUpdatedEventArgs e)
@@ -290,7 +318,17 @@ namespace Perpetuum.Zones
             if (!visibilityUpdated)
                 return;
 
-            ImmutableInterlocked.Update(ref _updatedUnits, h => h.Add(unit));
+            _updatedUnitsMutex.WaitOne();
+            switch (_primaryUpdatedUnits)
+            {
+                case PrimaryHashSet.One:
+                    _updatedUnitsOne.Add(unit);
+                    break;
+                default:
+                    _updatedUnitsTow.Add(unit);
+                    break;
+            }
+            _updatedUnitsMutex.ReleaseMutex();
         }
 
         public IEnumerable<Unit> Units => _units.Values;
