@@ -166,6 +166,11 @@ namespace Perpetuum.Robots
 
             _lockHandler.Update(time);
 
+            if (OnSafe)
+            {
+                return;
+            }
+
             foreach (var robotComponent in RobotComponents)
             {
                 robotComponent.Update(time);
@@ -411,5 +416,7 @@ namespace Perpetuum.Robots
         {
             return RobotComponents.OfType<T>().FirstOrDefault();
         }
+
+        protected virtual bool OnSafe => true;
     }
 }

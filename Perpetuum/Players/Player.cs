@@ -1236,6 +1236,6 @@ namespace Perpetuum.Players
             ApplySelfTeleportEnablerEffect(duration);
         }
 
-
+        protected override bool OnSafe => false;
     }
 }

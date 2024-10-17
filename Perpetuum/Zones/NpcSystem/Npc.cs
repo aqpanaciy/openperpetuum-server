@@ -1343,5 +1343,6 @@ namespace Perpetuum.Zones.NpcSystem
             return Zone.IsWalkableForNpc(x, y, Slope);
         }
 
+        protected override bool OnSafe => _threatManager.Hostiles.IsNullOrEmpty();
     }
 }
