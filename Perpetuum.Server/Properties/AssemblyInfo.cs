@@ -7,12 +7,13 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Perpetuum.Server")]
-[assembly: AssemblyCopyright("Copyright ©  2024")]
+[assembly: AssemblyCopyright("Copyright © Perpetuum 2017 - 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+
 [assembly: ComVisible(false)]
 
 [assembly: Guid("66b8e640-4993-4122-a702-29e303e469cc")]
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.28.0")]
+[assembly: AssemblyFileVersion("1.0.28.0")]
